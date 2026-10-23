@@ -42,26 +42,72 @@ CLAUDE_MANAGED_ENVIRONMENT_ID=your_environment_id
 PORT=3018
 ```
 
-## How the application was developed
+## How the app was build
 
-The browser collects inputs; the Node host validates requests; the lesson implementation produces observable evidence. The architecture page walks through the real source with numbered steps, prerequisite configuration, source filenames and code excerpts.
+### 1. Classify availability before permission
 
-### Lesson implementation
+A disabled tool is unavailable regardless of its permission label. Enabled ask becomes a handoff; deny is classified as a server denial only when evaluation evidence exists.
 
-[src/lesson.ts](https://github.com/luiscoco/Udemy-claude-managed-agents-lesson-c18-app/blob/main/src/lesson.ts)
+Source: [src/lesson.ts](src/lesson.ts#L13) · selected statements
 
 ```typescript
-  async run(input) {
+const enabled = flag(input, "enabled"),
+  p = text(input, "permission"),
+  evaluated = flag(input, "hasEvaluation");
 
-const enabled=flag(input,"enabled"), p=text(input,"permission"), evaluated=flag(input,"hasEvaluation");
-const classification=!enabled?"unavailable":p==="allow"?"allowed":p==="ask"?"asked":p==="deny"&&evaluated?"denied-server":"unknown";
-return report(classification==="allowed"?"passed":classification==="asked"?"paused":"rejected","Classified availability separately from the permission decision",{classification,enabled,permission:p},["Check tool availability","Read the evaluated permission","Keep unhandled observations non-successful"]);
-
-  }
-};
+const classification = !enabled
+  ? "unavailable"
+  : p === "allow"
+    ? "allowed"
+    : p === "ask"
+      ? "asked"
+      : p === "deny" && evaluated
+        ? "denied-server"
+        : "unknown";
 ```
 
-Read the architecture page for the remaining source excerpts and explanations, including input handling and optional provider behavior. The diagram describes this application, rather than implying that an external integration has been implemented.
+### 2. Keep unhandled states outside success
+
+Allowed maps to passed, asked maps to paused, and other classifications map to rejected. Inspect classification alongside the original enablement and permission fields instead of treating every deny label as equivalent.
+
+Source: [src/lesson.ts](src/lesson.ts#L15)
+
+```typescript
+return report(
+  classification === "allowed"
+    ? "passed"
+    : classification === "asked"
+      ? "paused"
+      : "rejected",
+  "Classified availability separately from the permission decision",
+  { classification, enabled, permission: p },
+  [
+    "Check tool availability",
+    "Read the evaluated permission",
+    "Keep unhandled observations non-successful",
+  ],
+);
+```
+
+### Check your understanding
+
+Run **An enabled tool asks** in the application. Compare the result with these scenario expectations:
+
+```json
+{
+  "input": {
+    "enabled": true,
+    "permission": "ask",
+    "hasEvaluation": true
+  },
+  "expectedOutcome": "paused",
+  "checkEvidence": {
+    "classification": "asked"
+  }
+}
+```
+
+Then try **An unavailable tool**. Its expected outcome is `rejected`; identify the condition or evidence field that explains the difference.
 
 ## Validation
 
