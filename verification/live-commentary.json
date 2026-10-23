@@ -1,0 +1,29 @@
+{
+  "source": "live-provider-commentary",
+  "sessionId": "sesn_01GtjqgX9QWQ5ZxmeXj6b1Bj",
+  "answer": "This local experiment explores the distinction between a tool being **enabled** (available in principle) and being **permitted** (allowed in a specific context). It classifies these two properties separately, noting that something can be enabled while its permission status is still \"ask\" \u2014 meaning availability alone does not constitute authorization. Unresolved permission cases are kept in a non-successful/paused state rather than treated as approvals.",
+  "stopReason": "end_turn",
+  "eventTypes": [
+    "session.status_running",
+    "session.thread_status_running",
+    "user.message",
+    "span.model_request_start",
+    "agent.thinking",
+    "agent.message",
+    "span.model_request_end",
+    "session.thread_status_idle",
+    "session.usage",
+    "session.status_idle"
+  ],
+  "requestUsage": [
+    {
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 568,
+      "output_tokens": 120,
+      "speed": "standard"
+    }
+  ],
+  "experimentHash": "740b9873a509d7d0902fa2776063fc4405c874406839324bb39f97cc92862e3a",
+  "scope": "A real text-only model response about the local experiment. External integrations and the experiment's correctness are not certified by this response."
+}

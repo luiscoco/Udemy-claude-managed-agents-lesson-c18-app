@@ -1,0 +1,22 @@
+import type { BetaManagedAgentsSessionEvent as SessionEvent } from "@anthropic-ai/sdk/resources/beta/sessions/events";
+type Outcome = "allowed" | "asked" | "denied-server" | "unavailable" | "unknown";
+type PermissionEvidence = { evaluated_permission?: string; evaluation?: { type: string } | null };
+export function classify(event: PermissionEvidence): Outcome {
+  if (event.evaluated_permission === "allow") return "allowed";
+  if (event.evaluated_permission === "ask") return "asked";
+  if (event.evaluated_permission !== "deny") return "unknown";
+  return event.evaluation == null ? "unavailable" : "denied-server";
+}
+export function makeAudit() {
+  const seen = new Set<string>();
+  const rows: { id: string; name: string; outcome: Outcome; evaluation: unknown }[] = [];
+  return { rows, ingest(event: SessionEvent) {
+    if (event.type !== "agent.tool_use" && event.type !== "agent.mcp_tool_use") return;
+    if (seen.has(event.id)) return;
+    rows.push({ id: event.id, name: event.name, outcome: classify(event), evaluation: event.evaluation ?? null });
+    seen.add(event.id);
+  } };
+}
+// An allow records permission to execute, not successful completion of the tool or effect.
+// Unknown variants are audited, never converted to approval. Custom tools use host validation.
+// No send calls here: classification is separate from an authenticated approval decision.
